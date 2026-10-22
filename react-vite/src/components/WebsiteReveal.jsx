@@ -2,13 +2,14 @@ import { useRef } from 'react';
 import gsap from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import MarketFuelLogo from './MarketFuelLogo.jsx';
 import HeroSection from './HeroSection.jsx';
 import TeamShowcase from './TeamShowcase.jsx';
 import GlassNavbar from './GlassNavbar.jsx';
 
-gsap.registerPlugin(DrawSVGPlugin, MotionPathPlugin, useGSAP);
+gsap.registerPlugin(DrawSVGPlugin, MotionPathPlugin, ScrollTrigger, useGSAP);
 
 const LOGO_DRAW_START = 3;
 const LOGO_DRAW_DURATION = 3.6;
@@ -16,12 +17,8 @@ const REVEAL_START = 7.4;
 
 export default function WebsiteReveal() {
 	const root = useRef(null);
-	const reduceMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-	const compactViewport = typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches;
-	const logoDrawStart = compactViewport ? 0.7 : LOGO_DRAW_START;
-	const logoDrawDuration = compactViewport ? 1.8 : LOGO_DRAW_DURATION;
-	const revealStart = reduceMotion ? 0 : compactViewport ? 3 : REVEAL_START;
-	const entranceDelay = reduceMotion ? 0 : revealStart + 1.2;
+	const reduceMotion = false;
+	const entranceDelay = reduceMotion ? 0 : REVEAL_START + 1.2;
 
 	useGSAP(
 		() => {
@@ -30,6 +27,7 @@ export default function WebsiteReveal() {
 			if (reduceMotion) {
 				gsap.set(['.loader-text-wrapper', '.revealer', '.pre-loader'], { display: 'none' });
 				document.body.style.overflow = originalBodyOverflow;
+				ScrollTrigger.refresh();
 				return () => { document.body.style.overflow = originalBodyOverflow; };
 			}
 
@@ -39,13 +37,13 @@ export default function WebsiteReveal() {
 			const tip = root.current.querySelector('.logo-tip');
 			const primaryPaths = gsap.utils.toArray('.logo-stroke');
 			const shadowPaths = gsap.utils.toArray('.logo-shadow');
-			const pathDuration = logoDrawDuration / primaryPaths.length;
+			const pathDuration = LOGO_DRAW_DURATION / primaryPaths.length;
 
 			gsap.set([...shadowPaths, ...primaryPaths], { drawSVG: '0%' });
 			gsap.set(logo, { autoAlpha: 1, filter: 'drop-shadow(0 0 0 rgba(255, 106, 0, 0))' });
 			gsap.set(tip, { autoAlpha: 0 });
 
-			const logoTimeline = gsap.timeline({ delay: logoDrawStart });
+			const logoTimeline = gsap.timeline({ delay: LOGO_DRAW_START });
 
 			primaryPaths.forEach((path, index) => {
 				const position = index * pathDuration;
@@ -107,37 +105,38 @@ export default function WebsiteReveal() {
 			gsap.from('.revealer', 1, {
 				width: 0,
 				ease: 'power3.inOut',
-				delay: revealStart,
+				delay: REVEAL_START,
 			});
 
 			gsap.to('.revealer', 0.8, {
 				left: '100%',
 				ease: 'power3.inOut',
-				delay: revealStart + 1,
+				delay: REVEAL_START + 1,
 			});
 
 			gsap.to('.loader-text-wrapper', 0.2, {
 				opacity: 0,
 				display: 'none',
 				ease: 'power3.inOut',
-				delay: revealStart + 1,
+				delay: REVEAL_START + 1,
 			});
 
-			gsap.delayedCall(revealStart + (compactViewport ? 1.8 : 3.5), () => {
+			gsap.delayedCall(REVEAL_START + 3.5, () => {
 				document.body.style.overflow = originalBodyOverflow;
+				ScrollTrigger.refresh();
 			});
 
 			return () => {
 				document.body.style.overflow = originalBodyOverflow;
 			};
 		},
-		{ scope: root, dependencies: [compactViewport, logoDrawDuration, logoDrawStart, reduceMotion, revealStart] }
+		{ scope: root, dependencies: [reduceMotion] }
 	);
 
 	return (
 		<div ref={root}>
 			<div className="container">
-				<GlassNavbar entranceDelay={reduceMotion ? 0 : revealStart + 1} />
+				<GlassNavbar entranceDelay={reduceMotion ? 0 : REVEAL_START + 1} />
 				<HeroSection entranceDelay={entranceDelay} />
 				<TeamShowcase />
 			</div>
