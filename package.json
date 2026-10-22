@@ -1,0 +1,10 @@
+{
+	"name": "marketfuel-showcase",
+	"private": true,
+	"version": "1.0.0",
+	"scripts": {
+		"dev": "npm --prefix react-vite run dev",
+		"build": "npm --prefix react-vite run build",
+		"preview": "npm --prefix react-vite run preview"
+	}
+}
